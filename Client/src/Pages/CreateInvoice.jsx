@@ -14,7 +14,7 @@ const CreateInvoice = () => {
     // FIX: Renamed customerEqual to customerMobile for clarity and correctness
     const [customerMobile, setCustomerMobile] = useState(""); 
     const [customerEmail, setCustomerEmail] = useState("");
-
+//1111
     // Bill Item states
     const [billItems, setBillItems] = useState([]);
 

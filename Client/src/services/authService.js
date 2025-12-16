@@ -3,9 +3,9 @@ import API from "./api";
 const login = async (email, password) => {
   const response = await API.post("/auth/login", { email, password });
 
-  // Store user data (including token) in localStorage upon successful login
+  // Store only token in localStorage
   if (response.data.token) {
-    localStorage.setItem("user", JSON.stringify(response.data));
+    localStorage.setItem("token", response.data.token);
   }
   return response.data;
 };
@@ -24,7 +24,7 @@ const register = async (name, email, password, role) => {
 };
 
 const logout = () => {
-  localStorage.removeItem("user");
+  localStorage.removeItem("token");
 };
 
 const authService = {

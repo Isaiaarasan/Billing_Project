@@ -2,8 +2,10 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+const generateToken = (id, name, email, role) => {
+  return jwt.sign({ id, name, email, role }, process.env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
 };
 
 // @desc    Register a new user (Admin or Employee)
@@ -32,7 +34,7 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id),
+        token: generateToken(user._id, user.name, user.email, user.role),
       });
     }
   } catch (error) {
@@ -54,7 +56,7 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id),
+        token: generateToken(user._id, user.name, user.email, user.role),
       });
     } else {
       res.status(401).json({ message: "Invalid email or password" });

@@ -9,9 +9,26 @@ export const AuthProvider = ({ children }) => {
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const userJson = localStorage.getItem("user");
-    if (userJson) {
-      setUser(JSON.parse(userJson));
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+
+        // Check for expiration
+        if (decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem("token");
+        } else {
+          // Map decoded JWT fields to user object structure
+          setUser({
+            ...decoded,
+            _id: decoded.id, // backend sends id, frontend might expect _id
+            token,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to decode token", error);
+        localStorage.removeItem("token");
+      }
     }
     setLoading(false);
   }, []);

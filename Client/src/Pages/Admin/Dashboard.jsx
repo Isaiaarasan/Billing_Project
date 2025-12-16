@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import adminService from "../../services/adminService";
 import {
   Users,
@@ -11,9 +11,22 @@ import {
   Trash2,
   BarChart3,
   Briefcase,
+  LogOut, // Import LogOut icon
 } from "lucide-react";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
+
+// Placeholder for the actual logout implementation (e.g., from an Auth Context)
+const useAuth = () => {
+  const navigate = useNavigate();
+  const logout = () => {
+    // --- REAL LOGOUT LOGIC HERE ---
+    console.log("User logged out.");
+    // Clear tokens, state, etc.
+    navigate("/login"); // Redirect to login page
+  };
+  return { logout };
+};
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -27,6 +40,9 @@ const Dashboard = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("employee");
+
+  // Get logout function
+  const { logout } = useAuth(); // Assuming useAuth provides a logout function
 
   // --- Styling Classes ---
   const primaryColor = "text-indigo-600";
@@ -138,11 +154,24 @@ const Dashboard = () => {
     <div className="min-h-screen bg-slate-100/50">
       {/* Header */}
       <div className="bg-white px-6 py-4 shadow-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto flex items-center gap-3">
-          <Briefcase size={24} className={primaryColor} />
-          <h1 className="text-2xl font-extrabold text-slate-900">
-            Admin Central Console
-          </h1>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Added justify-between to space header items */}
+          <div className="flex items-center gap-3">
+            <Briefcase size={24} className={primaryColor} />
+            <h1 className="text-2xl font-extrabold text-slate-900">
+              Admin Central Console
+            </h1>
+          </div>
+
+          {/* LOGOUT BUTTON - NEW ADDITION */}
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors shadow-sm"
+            title="Log Out"
+          >
+            <LogOut size={16} />
+            Logout
+          </button>
         </div>
       </div>
 

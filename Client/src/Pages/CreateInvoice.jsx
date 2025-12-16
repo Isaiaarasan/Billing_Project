@@ -59,7 +59,7 @@ const CreateInvoice = () => {
 
     try {
       await addInvoice(invoice);
-      navigate("/");
+      navigate("/history");
     } catch (error) {
       alert("Failed to save invoice. Please try again.");
     }

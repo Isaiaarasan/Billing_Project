@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Configure the base URL for your backend
 const API = axios.create({
-  baseURL: "http://localhost:5000/api", // IMPORTANT: Match your backend port
+  baseURL: "https://billing-project-g0o7.onrender.com/api", // IMPORTANT: Match your backend port
 });
 
 // Interceptor to attach the token to every request

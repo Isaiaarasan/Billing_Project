@@ -48,19 +48,21 @@ const CreateInvoice = () => {
   const calculateTotal = () =>
     billItems.reduce((acc, item) => acc + item.total, 0);
 
-  const handleSaveInvoice = () => {
+  const handleSaveInvoice = async () => {
     if (billItems.length === 0) return alert("Add items first!");
 
     const invoice = {
-      id: Date.now(),
-      date: new Date(),
       customerName,
       items: billItems,
-      total: calculateTotal(),
+      totalAmount: calculateTotal(),
     };
 
-    addInvoice(invoice);
-    navigate("/");
+    try {
+      await addInvoice(invoice);
+      navigate("/");
+    } catch (error) {
+      alert("Failed to save invoice. Please try again.");
+    }
   };
 
   return (
@@ -114,7 +116,7 @@ const CreateInvoice = () => {
               />
               <datalist id="product-list">
                 {products.map((p) => (
-                  <option key={p.id} value={p.name} />
+                  <option key={p._id} value={p.name} />
                 ))}
               </datalist>
             </div>

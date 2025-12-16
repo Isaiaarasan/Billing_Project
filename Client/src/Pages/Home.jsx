@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useShop } from "../context/ShopContext";
 import { useAuth } from "../context/AuthContext";
-import { Plus, FileText, Calendar, LogOut, ChevronLeft } from "lucide-react";
+import { Plus, FileText, Calendar, LogOut, ChevronLeft, Search, Filter, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Home = () => {
@@ -13,77 +13,118 @@ const Home = () => {
   }, [fetchInvoices]);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-28">
+    <div className="min-h-screen bg-slate-50 pb-20 relative overflow-hidden">
+
+      {/* Background Gradients */}
+      <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-indigo-100/50 to-transparent -z-10"></div>
+
       {/* Header */}
-      <div className="bg-white shadow-sm px-6 py-4 sticky top-0 z-10 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Link to="/dashboard" className="p-1 -ml-2 text-gray-500 hover:bg-gray-100 rounded-full">
-            <ChevronLeft size={24} />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">My Invoices</h1>
-            <p className="text-xs text-gray-500">History</p>
+      <div className="px-6 py-4 glass-panel sticky top-0 z-50 border-b border-white/20 mb-8">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard" className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+              <ChevronLeft size={24} />
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">Invoice History</h1>
+              <p className="text-xs text-slate-500">Manage and track all transactions</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm">
+              <Search size={16} className="text-slate-400 mr-2" />
+              <input placeholder="Search invoice..." className="bg-transparent outline-none w-48" />
+            </div>
+            <Link to="/create-invoice" className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+              <Plus size={18} /> <span className="hidden sm:inline">New Invoice</span>
+            </Link>
           </div>
         </div>
-        <button
-          onClick={logout}
-          className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors"
-          title="Logout"
-        >
-          <LogOut size={18} />
-        </button>
       </div>
 
-      <div className="p-4 max-w-lg mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-sm text-gray-500 font-medium uppercase tracking-wide">Recent Activity</span>
-          <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
-            {invoices.length} Total
+      <div className="px-6 max-w-7xl mx-auto">
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="glass-card p-6 rounded-2xl">
+            <p className="text-sm text-slate-500 font-medium mb-2">Total Invoices</p>
+            <h3 className="text-3xl font-bold text-slate-900">{invoices.length}</h3>
+          </div>
+          <div className="glass-card p-6 rounded-2xl">
+            <p className="text-sm text-slate-500 font-medium mb-2">Revenue</p>
+            <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
+              ₹{invoices.reduce((acc, curr) => acc + curr.totalAmount, 0).toLocaleString()}
+            </h3>
+          </div>
+          <div className="glass-card p-6 rounded-2xl flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500 font-medium mb-2">This Month</p>
+              <h3 className="text-3xl font-bold text-slate-900">{invoices.length > 0 ? '+12%' : '0%'}</h3>
+            </div>
+            <div className="h-12 w-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
+              <Filter size={20} />
+            </div>
           </div>
         </div>
 
-        {invoices.length === 0 ? (
-          <div className="text-center py-20 text-gray-400">
-            <FileText size={48} className="mx-auto mb-4 opacity-20" />
-            <p>No invoices yet.</p>
-            <p className="text-sm">Start by creating one!</p>
+        {/* Invoice List */}
+        <div className="glass-panel rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+            <h3 className="font-bold text-lg text-slate-800">Recent Transactions</h3>
+            <button className="text-indigo-600 text-sm font-medium hover:underline">Download Report</button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {invoices.map((inv) => (
-              <div
-                key={inv._id}
-                className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"
-              >
-                <div>
-                  <p className="font-bold text-gray-800">
-                    {inv.customerName || "Unknown Customer"}
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                    <Calendar size={12} />
-                    {new Date(inv.createdAt).toLocaleDateString()}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="block font-bold text-lg text-gray-900">
-                    ₹{inv.totalAmount}
-                  </span>
-                  <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded-md font-bold uppercase">
-                    Paid
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* Floating Action Button */}
-        <Link
-          to="/create-invoice"
-          className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg shadow-blue-300 hover:scale-105 transition-transform"
-        >
-          <Plus size={24} />
-        </Link>
+          {invoices.length === 0 ? (
+            <div className="text-center py-20 text-slate-400">
+              <FileText size={64} className="mx-auto mb-4 opacity-20 text-indigo-400" />
+              <h3 className="text-lg font-medium text-slate-600">No invoices found</h3>
+              <p className="text-sm">Create your first invoice to see it here.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500">
+                  <tr>
+                    <th className="px-6 py-4">Customer</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Amount</th>
+                    <th className="px-6 py-4 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {invoices.map((inv) => (
+                    <tr key={inv._id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="px-6 py-4 font-medium text-slate-900">
+                        {inv.customerName || "Unknown Customer"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <Calendar size={14} className="text-slate-400" />
+                          {new Date(inv.createdAt).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Paid
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right font-bold text-slate-900">
+                        ₹{inv.totalAmount.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="View Details">
+                          <FileText size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

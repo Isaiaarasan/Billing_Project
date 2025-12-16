@@ -1,6 +1,7 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useShop } from "../context/ShopContext";
 import {
     PlusCircle,
     History,
@@ -12,13 +13,30 @@ import {
     Search,
     Settings
 } from "lucide-react";
-import Button from "../components/Button";
 
 const EmployeeDashboard = () => {
     const { user, logout } = useAuth();
+    const { invoices, fetchInvoices } = useShop();
+    const [searchTerm, setSearchTerm] = useState("");
+    const navigate = useNavigate();
 
-    // Fake notifications for UI
-    const hasNotifications = true;
+    useEffect(() => {
+        fetchInvoices();
+    }, [fetchInvoices]);
+
+    // Calculate stats for "Today"
+    const today = new Date().toDateString();
+    const todaysInvoices = (invoices || []).filter(inv => new Date(inv.createdAt).toDateString() === today);
+    const todaysRevenue = todaysInvoices.reduce((acc, curr) => acc + curr.totalAmount, 0);
+
+
+    const handleSearch = (e) => {
+        if (e.key === 'Enter') {
+            // Navigate to History with search query (requires History page to handle it, 
+            // but for now let's just navigate to history to show intent)
+            navigate('/history');
+        }
+    };
 
     return (
         <div className="min-h-screen relative overflow-hidden flex flex-col">
@@ -40,25 +58,31 @@ const EmployeeDashboard = () => {
                             </h1>
                         </div>
 
-                        {/* Desktop Menu links (Visual Only) */}
+                        {/* Desktop Menu links - Functional! */}
                         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-500">
-                            <Link to="#" className="text-slate-900 transition-colors">Overview</Link>
-                            <Link to="#" className="hover:text-slate-900 transition-colors">Reports</Link>
-                            <Link to="#" className="hover:text-slate-900 transition-colors">Support</Link>
+                            <Link to="/dashboard" className="text-slate-900 transition-colors">Overview</Link>
+                            <Link to="/history" className="hover:text-slate-900 transition-colors">History</Link>
                         </nav>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Search Bar (Visual) */}
+                        {/* Search Bar */}
                         <div className="hidden lg:flex items-center bg-slate-100/50 rounded-full px-4 py-2 border border-slate-200 text-sm w-64 focus-within:ring-2 ring-indigo-500/20 transition-all">
                             <Search size={16} className="text-slate-400 mr-2" />
-                            <input type="text" placeholder="Search..." className="bg-transparent border-0 p-0 focus:ring-0 w-full placeholder-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Search invoices..."
+                                className="bg-transparent border-0 p-0 focus:ring-0 w-full placeholder-slate-400"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={handleSearch}
+                            />
                         </div>
 
                         <div className="flex items-center gap-2 border-l border-slate-200 pl-4 ml-2">
                             <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
                                 <Bell size={20} />
-                                {hasNotifications && <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full border border-white"></span>}
+                                {/* Notification dot removed until we have real notifications */}
                             </button>
 
                             <div className="flex items-center gap-3 pl-2">
@@ -86,7 +110,7 @@ const EmployeeDashboard = () => {
                 {/* Welcome Section */}
                 <div className="mb-10 animate-fade-in-up">
                     <h2 className="text-3xl font-bold text-slate-900 mb-2">Good Morning, {user?.name.split(' ')[0]} 👋</h2>
-                    <p className="text-slate-500">Here's what's happening with your billing today.</p>
+                    <p className="text-slate-500">Here's your activity for today, {today}.</p>
                 </div>
 
                 {/* Action Grid */}
@@ -117,7 +141,6 @@ const EmployeeDashboard = () => {
                             </div>
                         </div>
 
-                        {/* Decorative Image/Pattern */}
                         <div className="hidden sm:block absolute bottom-0 right-4 w-64 opacity-20 pointer-events-none group-hover:opacity-30 group-hover:translate-x-2 transition-all">
                             {/* Could be an SVG pattern or Image */}
                             <FileText size={200} className="stroke-1 text-white" />
@@ -134,7 +157,7 @@ const EmployeeDashboard = () => {
                                     <History size={28} />
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-900 mb-1">Transaction History</h3>
-                                <p className="text-slate-500 text-sm mb-6">Review past invoices, check status, and print receipts.</p>
+                                <p className="text-slate-500 text-sm mb-6">Review past invoices and check status.</p>
 
                                 <div className="flex items-center text-purple-600 font-semibold group-hover:gap-2 transition-all">
                                     View Records <TrendingUp size={16} className="ml-1" />
@@ -143,29 +166,28 @@ const EmployeeDashboard = () => {
                         </div>
                     </Link>
 
-                    {/* Third Card / Stat (Optional) */}
+                    {/* Real Stats Card */}
                     <div className="hidden lg:block bg-white rounded-3xl p-8 border border-slate-100 shadow-xl shadow-slate-200/50">
                         <div className="flex justify-between items-start mb-6">
                             <div>
-                                <h3 className="text-lg font-bold text-slate-900">Quick Stats</h3>
-                                <p className="text-xs text-slate-500">Today's Performance</p>
+                                <h3 className="text-lg font-bold text-slate-900">Today's Stats</h3>
+                                <p className="text-xs text-slate-500">Daily Performance</p>
                             </div>
-                            <Settings size={20} className="text-slate-300 hover:text-slate-600 cursor-pointer transition-colors" />
                         </div>
 
                         <div className="space-y-4">
                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <span className="text-sm font-medium text-slate-600">Pending</span>
-                                <span className="font-bold text-orange-500">0</span>
+                                <span className="text-sm font-medium text-slate-600">Invoices</span>
+                                <span className="font-bold text-indigo-600">{todaysInvoices.length}</span>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <span className="text-sm font-medium text-slate-600">Completed</span>
-                                <span className="font-bold text-green-500">Ready</span>
+                                <span className="text-sm font-medium text-slate-600">Revenue</span>
+                                <span className="font-bold text-green-600">₹{todaysRevenue.toLocaleString()}</span>
                             </div>
                         </div>
 
                         <div className="mt-6 pt-6 border-t border-slate-100 text-center">
-                            <p className="text-xs text-slate-400">System Status: <span className="text-green-500 font-bold">Online</span></p>
+                            <p className="text-xs text-slate-400">Keep up the good work!</p>
                         </div>
                     </div>
 

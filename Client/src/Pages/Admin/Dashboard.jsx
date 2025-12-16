@@ -9,6 +9,8 @@ import {
   Plus,
   Edit,
   Trash2,
+  BarChart3,
+  Briefcase,
 } from "lucide-react";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
@@ -26,6 +28,12 @@ const Dashboard = () => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("employee");
 
+  // --- Styling Classes ---
+  const primaryColor = "text-indigo-600";
+  const primaryBg = "bg-indigo-600";
+  const primaryHoverBg = "hover:bg-indigo-700";
+  const primaryShadow = "shadow-lg shadow-indigo-500/20";
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -37,7 +45,13 @@ const Dashboard = () => {
         adminService.getAllUsers(),
       ]);
       setStats(statsData);
-      setUsers(usersData);
+      // Sort users to put Admins first
+      const sortedUsers = usersData.sort((a, b) => {
+        if (a.role === 'admin' && b.role !== 'admin') return -1;
+        if (a.role !== 'admin' && b.role === 'admin') return 1;
+        return 0;
+      });
+      setUsers(sortedUsers);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
     } finally {
@@ -55,7 +69,7 @@ const Dashboard = () => {
   };
 
   const handleAddUser = async () => {
-    if (!name || !email || !password) return;
+    if (!name || !email || !password) return alert("Please fill in all required fields.");
 
     try {
       await adminService.createUser({ name, email, password, role });
@@ -77,10 +91,12 @@ const Dashboard = () => {
   };
 
   const handleUpdateUser = async () => {
-    if (!name || !email) return;
+    if (!name || !email) return alert("Name and Email are required.");
 
     try {
-      await adminService.updateUser(editingUser._id, { name, email, role });
+      // Only send name, email, and role for update. Password change would require a dedicated field/logic.
+      const updatePayload = { name, email, role };
+      await adminService.updateUser(editingUser._id, updatePayload);
       resetForm();
       fetchDashboardData();
     } catch (error) {
@@ -90,7 +106,7 @@ const Dashboard = () => {
   };
 
   const handleDeleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
 
     try {
       await adminService.deleteUser(id);
@@ -103,137 +119,181 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading system data...</p>
         </div>
       </div>
     );
   }
 
+  // Calculated Total Invoices
+  const totalInvoices = stats.employeeStats.reduce(
+    (acc, emp) => acc + emp.invoiceCount,
+    0
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white px-4 py-3 shadow-sm border-b">
-        <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+    <div className="min-h-screen bg-slate-100/50">
+      {/* Header */}
+      <div className="bg-white px-6 py-4 shadow-md border-b border-slate-200">
+        <div className="max-w-7xl mx-auto flex items-center gap-3">
+          <Briefcase size={24} className={primaryColor} />
+          <h1 className="text-2xl font-extrabold text-slate-900">
+            Admin Central Console
+          </h1>
+        </div>
       </div>
 
-      <div className="p-4 max-w-7xl mx-auto space-y-6">
-        {/* Stats Cards */}
+      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+
+        {/* 1. Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <TrendingUp className="text-green-600" size={24} />
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+            {/* Total Sales */}
+            <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Sales</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">Total Sales</p>
+                  <p className="text-3xl font-extrabold text-slate-900">
                     ₹{stats.grandTotal.toLocaleString()}
                   </p>
                 </div>
+                <div className={`p-3 ${primaryBg} rounded-xl text-white ${primaryShadow}`}>
+                  <TrendingUp size={24} />
+                </div>
               </div>
+              <p className="text-xs text-slate-400 mt-2">
+                Data aggregated across all employees.
+              </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Users className="text-blue-600" size={24} />
-                </div>
+            {/* Total Employees */}
+            <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Employees</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">Active Employees</p>
+                  <p className="text-3xl font-extrabold text-slate-900">
                     {users.length}
                   </p>
                 </div>
+                <div className="p-3 bg-blue-500 rounded-xl text-white shadow-lg shadow-blue-500/20">
+                  <Users size={24} />
+                </div>
               </div>
+              <p className="text-xs text-slate-400 mt-2">
+                Includes Admins and Employees.
+              </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <FileText className="text-purple-600" size={24} />
-                </div>
+            {/* Total Invoices */}
+            <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Invoices</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stats.employeeStats.reduce(
-                      (acc, emp) => acc + emp.invoiceCount,
-                      0
-                    )}
+                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">Total Invoices</p>
+                  <p className="text-3xl font-extrabold text-slate-900">
+                    {totalInvoices}
                   </p>
                 </div>
+                <div className="p-3 bg-teal-500 rounded-xl text-white shadow-lg shadow-teal-500/20">
+                  <FileText size={24} />
+                </div>
               </div>
+              <p className="text-xs text-slate-400 mt-2">
+                Bills generated across the system.
+              </p>
+            </div>
+
+            {/* Dummy Card for visual symmetry/future expansion */}
+            <div className="hidden xl:block bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">Total Products</p>
+                  <p className="text-3xl font-extrabold text-slate-900">
+                    {stats.productCount || "N/A"}
+                  </p>
+                </div>
+                <div className="p-3 bg-yellow-500 rounded-xl text-white shadow-lg shadow-yellow-500/20">
+                  <Package size={24} />
+                </div>
+              </div>
+              <p className="text-xs text-slate-400 mt-2">
+                Inventory items currently stocked.
+              </p>
             </div>
           </div>
         )}
 
-        {/* Quick Actions */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link
-              to="/manage-products"
-              className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-            >
-              <Package className="text-blue-600" size={20} />
-              <span className="font-medium text-blue-900">Manage Products</span>
-            </Link>
-            <Link
-              to="/create-invoice"
-              className="flex items-center gap-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-            >
-              <FileText className="text-green-600" size={20} />
-              <span className="font-medium text-green-900">Create Invoice</span>
-            </Link>
-            <Link
-              to="/history"
-              className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
-            >
-              <TrendingUp className="text-purple-600" size={20} />
-              <span className="font-medium text-purple-900">View Reports</span>
-            </Link>
+        {/* 2. Quick Actions & Employee Performance (Two Columns) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* LEFT: Employee Performance (Col 1/2) */}
+          {stats && stats.employeeStats.length > 0 && (
+            <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border border-slate-200/80">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <BarChart3 className={primaryColor} size={20} />
+                  Top Employee Performance
+                </h2>
+                <Link to="/reports" className="text-sm font-semibold text-indigo-500 hover:text-indigo-600 transition-colors">
+                  View Full Report &rarr;
+                </Link>
+              </div>
+
+              <div className="space-y-4 divide-y divide-slate-100">
+                {stats.employeeStats.slice(0, 5).map((emp, index) => (
+                  <div
+                    key={emp.employeeEmail}
+                    className="flex items-center justify-between pt-4 pb-2 hover:bg-slate-50 rounded-lg -mx-2 px-2 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`font-extrabold text-lg w-6 text-center ${index < 3 ? 'text-indigo-500' : 'text-slate-400'}`}>
+                        #{index + 1}
+                      </span>
+                      <div>
+                        <p className="font-semibold text-slate-800">{emp.employeeName}</p>
+                        <p className="text-xs text-slate-500">{emp.employeeEmail}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-lg text-slate-900">
+                        ₹{emp.totalSales.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {emp.invoiceCount} invoices
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* RIGHT: Quick Actions (Col 3) */}
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-xl border border-slate-200/80 h-fit">
+            <h2 className="text-xl font-bold text-slate-900 mb-6">Quick Links</h2>
+            <div className="space-y-4">
+              <LinkButton to="/manage-products" icon={Package} label="Product Inventory" color="blue" />
+              <LinkButton to="/history" icon={TrendingUp} label="Detailed Sales History" color="purple" />
+              <LinkButton to="/settings" icon={Briefcase} label="System Settings" color="slate" />
+            </div>
           </div>
         </div>
 
-        {/* Employee Performance */}
-        {stats && stats.employeeStats.length > 0 && (
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-semibold mb-4">Employee Performance</h2>
-            <div className="space-y-3">
-              {stats.employeeStats.map((emp) => (
-                <div
-                  key={emp.employeeEmail}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {emp.employeeName}
-                    </p>
-                    <p className="text-sm text-gray-600">{emp.employeeEmail}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gray-900">
-                      ₹{emp.totalSales.toLocaleString()}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {emp.invoiceCount} invoices
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* User Management */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Employee Management</h2>
+        {/* 3. User Management */}
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80">
+          <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-slate-900">Employee Management</h2>
             <Button
-              onClick={() => setShowAddUser(true)}
-              className="flex items-center gap-2"
+              onClick={() => {
+                setEditingUser(null);
+                resetForm();
+                setShowAddUser(true);
+              }}
+              className={`flex items-center gap-2 ${primaryBg} ${primaryHoverBg} text-white font-semibold transition-all py-2 px-4 rounded-xl`}
             >
               <Plus size={16} />
               Add Employee
@@ -242,13 +302,14 @@ const Dashboard = () => {
 
           {/* Add/Edit User Form */}
           {showAddUser && (
-            <div className="p-6 border-b border-gray-100 bg-gray-50">
-              <h3 className="text-md font-semibold mb-4">
-                {editingUser ? "Edit Employee" : "Add New Employee"}
+            <div className="p-6 border-b border-slate-100 bg-slate-50/70">
+              <h3 className="text-lg font-bold mb-4 text-slate-800">
+                {editingUser ? "Edit Employee Details" : "Add New Employee"}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <Input
                   label="Name"
+                  placeholder="Ex: Jane Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -256,40 +317,43 @@ const Dashboard = () => {
                 <Input
                   label="Email"
                   type="email"
+                  placeholder="ex@domain.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
                 {!editingUser && (
                   <Input
-                    label="Password"
+                    label="Initial Password"
                     type="password"
+                    placeholder="Set initial password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 )}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className={editingUser ? "md:col-span-2" : ""}>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Role
                   </label>
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow bg-white"
                   >
                     <option value="employee">Employee</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Button
                   onClick={editingUser ? handleUpdateUser : handleAddUser}
+                  className={`${primaryBg} ${primaryHoverBg} text-white font-semibold py-2 px-4 rounded-xl shadow-md`}
                 >
-                  {editingUser ? "Update Employee" : "Add Employee"}
+                  {editingUser ? "Save Changes" : "Create Employee"}
                 </Button>
-                <Button onClick={resetForm} variant="secondary">
+                <Button onClick={resetForm} className="bg-slate-300 hover:bg-slate-400 text-slate-800 font-semibold py-2 px-4 rounded-xl transition-colors">
                   Cancel
                 </Button>
               </div>
@@ -297,21 +361,20 @@ const Dashboard = () => {
           )}
 
           {/* Users List */}
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-slate-100">
             {users.map((user) => (
               <div
                 key={user._id}
-                className="p-4 flex items-center justify-between hover:bg-gray-50"
+                className="p-4 md:p-6 flex items-center justify-between hover:bg-slate-50 transition-colors"
               >
                 <div>
-                  <p className="font-medium text-gray-900">{user.name}</p>
-                  <p className="text-sm text-gray-600">{user.email}</p>
-                  <p className="text-xs text-gray-500">
-                    Role:{" "}
+                  <p className="font-semibold text-slate-900">{user.name}</p>
+                  <p className="text-sm text-slate-600">{user.email}</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Access Level:{" "}
                     <span
-                      className={`font-medium ${
-                        user.role === "admin" ? "text-red-600" : "text-blue-600"
-                      }`}
+                      className={`font-bold uppercase tracking-wider ${user.role === "admin" ? "text-red-500" : "text-indigo-600"
+                        }`}
                     >
                       {user.role}
                     </span>
@@ -320,17 +383,17 @@ const Dashboard = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEditUser(user)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                    title="Edit"
+                    className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-full transition-colors"
+                    title="Edit User"
                   >
-                    <Edit size={16} />
+                    <Edit size={18} />
                   </button>
                   <button
                     onClick={() => handleDeleteUser(user._id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                    title="Delete"
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                    title="Delete User"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
@@ -339,6 +402,28 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Helper component for Quick Links
+const LinkButton = ({ to, icon: Icon, label, color }) => {
+  const colorClasses = {
+    blue: "bg-blue-50 text-blue-600 hover:bg-blue-100",
+    green: "bg-green-50 text-green-600 hover:bg-green-100",
+    purple: "bg-purple-50 text-purple-600 hover:bg-purple-100",
+    slate: "bg-slate-200/50 text-slate-600 hover:bg-slate-200",
+  };
+
+  return (
+    <Link
+      to={to}
+      className={`flex items-center gap-4 p-4 rounded-xl transition-all border border-transparent hover:border-slate-200 ${colorClasses[color]}`}
+    >
+      <div className={`p-2 rounded-full bg-white shadow-sm`}>
+        <Icon size={18} />
+      </div>
+      <span className="font-semibold">{label}</span>
+    </Link>
   );
 };
 

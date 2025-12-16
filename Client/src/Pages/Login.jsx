@@ -67,7 +67,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="pl-8" // Custom padding for icon
+                //className="pl-8" // Custom padding for icon
                 style={{ paddingLeft: '2.5rem' }}
               />
             </div>
@@ -96,7 +96,7 @@ const Login = () => {
               {loading ? "Signing In..." : "Log In"} <LogIn size={20} />
             </button>
           </form>
-
+          {/* 
           <p className="mt-8 text-center text-sm text-slate-500">
             Don't have an account?
             <Link
@@ -105,7 +105,7 @@ const Login = () => {
             >
               Sign Up
             </Link>
-          </p>
+          </p> */}
         </div>
 
         {/* Right Side: Visuals (Desktop Only) */}

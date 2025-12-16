@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useShop } from "../context/ShopContext";
 import { useAuth } from "../context/AuthContext";
 import { Plus, FileText, Calendar, LogOut, ChevronLeft, Search, Filter, Download } from "lucide-react";
@@ -7,10 +7,58 @@ import { Link } from "react-router-dom";
 const Home = () => {
   const { invoices, fetchInvoices } = useShop();
   const { logout, user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchInvoices();
   }, [fetchInvoices]);
+
+  // Filter invoices based on search term
+  const filteredInvoices = invoices.filter((inv) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      inv.customerName?.toLowerCase().includes(searchLower) ||
+      inv.totalAmount?.toString().includes(searchLower) ||
+      new Date(inv.createdAt).toLocaleDateString().includes(searchLower)
+    );
+  });
+
+  // Download CSV Report
+  const handleDownloadReport = () => {
+    if (invoices.length === 0) {
+      alert("No invoices to download");
+      return;
+    }
+
+    // Prepare CSV data
+    const headers = ["Invoice ID", "Customer Name", "Date", "Amount", "Status"];
+    const rows = invoices.map((inv) => [
+      inv._id,
+      inv.customerName || "Unknown",
+      new Date(inv.createdAt).toLocaleDateString(),
+      `₹${inv.totalAmount}`,
+      "Paid"
+    ]);
+
+    // Convert to CSV format
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", `invoice_report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20 relative overflow-hidden">
@@ -32,9 +80,14 @@ const Home = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm">
+            <div className="hidden sm:flex items-center bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus-within:ring-2 ring-indigo-500/20 transition-all">
               <Search size={16} className="text-slate-400 mr-2" />
-              <input placeholder="Search invoice..." className="bg-transparent outline-none w-48" />
+              <input
+                placeholder="Search by customer or amount..."
+                className="bg-transparent outline-none w-64"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
             <Link to="/create-invoice" className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
               <Plus size={18} /> <span className="hidden sm:inline">New Invoice</span>
@@ -59,8 +112,8 @@ const Home = () => {
           </div>
           <div className="glass-card p-6 rounded-2xl flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500 font-medium mb-2">This Month</p>
-              <h3 className="text-3xl font-bold text-slate-900">{invoices.length > 0 ? '+12%' : '0%'}</h3>
+              <p className="text-sm text-slate-500 font-medium mb-2">Filtered Results</p>
+              <h3 className="text-3xl font-bold text-slate-900">{filteredInvoices.length}</h3>
             </div>
             <div className="h-12 w-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
               <Filter size={20} />
@@ -72,14 +125,24 @@ const Home = () => {
         <div className="glass-panel rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex justify-between items-center">
             <h3 className="font-bold text-lg text-slate-800">Recent Transactions</h3>
-            <button className="text-indigo-600 text-sm font-medium hover:underline">Download Report</button>
+            <button
+              onClick={handleDownloadReport}
+              disabled={invoices.length === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download size={16} /> Download Report
+            </button>
           </div>
 
-          {invoices.length === 0 ? (
+          {filteredInvoices.length === 0 ? (
             <div className="text-center py-20 text-slate-400">
               <FileText size={64} className="mx-auto mb-4 opacity-20 text-indigo-400" />
-              <h3 className="text-lg font-medium text-slate-600">No invoices found</h3>
-              <p className="text-sm">Create your first invoice to see it here.</p>
+              <h3 className="text-lg font-medium text-slate-600">
+                {searchTerm ? "No matching invoices found" : "No invoices found"}
+              </h3>
+              <p className="text-sm">
+                {searchTerm ? "Try a different search term" : "Create your first invoice to see it here."}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -94,7 +157,7 @@ const Home = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {invoices.map((inv) => (
+                  {filteredInvoices.map((inv) => (
                     <tr key={inv._id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-6 py-4 font-medium text-slate-900">
                         {inv.customerName || "Unknown Customer"}

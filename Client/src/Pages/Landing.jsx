@@ -28,7 +28,7 @@ const Landing = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
             </span>
-            <span className="text-sm font-medium text-indigo-900">v2.0 is now live</span>
+            <span className="text-sm font-medium text-indigo-900">Sales is now live</span>
           </div>
 
           <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1]">
@@ -46,9 +46,9 @@ const Landing = () => {
                 Employee Login <ArrowRight size={18} />
               </button>
             </Link>
-            <Link to="/register" className="w-full sm:w-auto">
+            <Link to="/admin/login" className="w-full sm:w-auto">
               <button className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-slate-900 border border-slate-200 font-semibold hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
-                Create Account
+                Admin Login
               </button>
             </Link>
           </div>

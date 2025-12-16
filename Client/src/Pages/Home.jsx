@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useShop } from "../context/ShopContext";
 import { useAuth } from "../context/AuthContext";
-import { Plus, FileText, Calendar, LogOut } from "lucide-react";
+import { Plus, FileText, Calendar, LogOut, ChevronLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Home = () => {
@@ -16,9 +16,14 @@ const Home = () => {
     <div className="min-h-screen bg-gray-50 pb-28">
       {/* Header */}
       <div className="bg-white shadow-sm px-6 py-4 sticky top-0 z-10 flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">My Invoices</h1>
-          <p className="text-xs text-gray-500">Welcome, {user?.name || 'Employee'}</p>
+        <div className="flex items-center gap-3">
+          <Link to="/dashboard" className="p-1 -ml-2 text-gray-500 hover:bg-gray-100 rounded-full">
+            <ChevronLeft size={24} />
+          </Link>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">My Invoices</h1>
+            <p className="text-xs text-gray-500">History</p>
+          </div>
         </div>
         <button
           onClick={logout}

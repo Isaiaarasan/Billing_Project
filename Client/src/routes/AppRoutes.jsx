@@ -11,6 +11,7 @@ import Register from "../Pages/register";
 import AdminLogin from "../Pages/Admin/Login";
 
 // Authenticated Pages (Employee)
+import EmployeeDashboard from "../Pages/EmployeeDashboard"; // NEW
 import Home from "../Pages/Home"; // Invoice History
 import CreateInvoice from "../Pages/CreateInvoice";
 
@@ -38,7 +39,7 @@ const PrivateRoute = ({ children, role = null }) => {
 
   // Role-based Access Control
   if (role === "admin" && user?.role !== "admin") {
-    return <Navigate to="/" replace />; // Unauthorized for this role
+    return <Navigate to="/dashboard" replace />; // Redirect employees to dashboard if they try admin
   }
 
   return children;
@@ -56,10 +57,15 @@ const AppRoutes = () => {
       <Route path="/admin/login" element={<AdminLogin />} />
 
       {/* ================= EMPLOYEE ROUTES ================= */}
-      {/* 
-         "History" is effectively the Employee Dashboard currently.
-         We can alias /dashboard or /employee to it if needed.
-      */}
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <EmployeeDashboard />
+          </PrivateRoute>
+        }
+      />
+
       <Route
         path="/history"
         element={

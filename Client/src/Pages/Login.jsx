@@ -24,7 +24,7 @@ const Login = () => {
       if (isAdmin) {
         navigate("/admin/dashboard");
       } else {
-        navigate("/history");
+        navigate("/dashboard");
       }
     } catch (err) {
       // Assuming backend sends a structured error message

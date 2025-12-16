@@ -11,19 +11,19 @@ export const ShopProvider = ({ children }) => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch products from API when authenticated
+  const fetchProducts = async () => {
+    try {
+      const data = await productService.getProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
-      const fetchProducts = async () => {
-        try {
-          const data = await productService.getProducts();
-          setProducts(data);
-        } catch (error) {
-          console.error("Failed to fetch products:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
       fetchProducts();
     } else {
       setLoading(false);
@@ -95,6 +95,7 @@ export const ShopProvider = ({ children }) => {
         deleteProduct,
         addInvoice,
         fetchInvoices,
+        fetchProducts,
       }}
     >
       {children}

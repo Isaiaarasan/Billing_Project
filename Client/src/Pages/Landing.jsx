@@ -9,7 +9,7 @@ const Landing = () => {
 
   if (isAuthenticated) {
     if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
-    return <Navigate to="/history" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

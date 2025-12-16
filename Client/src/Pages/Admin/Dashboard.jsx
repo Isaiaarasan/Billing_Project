@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import adminService from "../../services/adminService";
+import { useAuth } from "../../context/AuthContext";
 import {
   Users,
   Package,
@@ -17,16 +18,16 @@ import Input from "../../components/Input";
 import Button from "../../components/Button";
 
 // Placeholder for the actual logout implementation (e.g., from an Auth Context)
-const useAuth = () => {
-  const navigate = useNavigate();
-  const logout = () => {
-    // --- REAL LOGOUT LOGIC HERE ---
-    console.log("User logged out.");
-    // Clear tokens, state, etc.
-    navigate("/"); // Redirect to login page
-  };
-  return { logout };
-};
+// const useAuth = () => {
+//   const navigate = useNavigate();
+//   const logout = () => {
+//     // --- REAL LOGOUT LOGIC HERE ---
+//     console.log("User logged out.");
+//     // Clear tokens, state, etc.
+//     navigate("/logout"); // Redirect to login page
+//   };
+//   return { logout };
+// };
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -63,8 +64,8 @@ const Dashboard = () => {
       setStats(statsData);
       // Sort users to put Admins first
       const sortedUsers = usersData.sort((a, b) => {
-        if (a.role === 'admin' && b.role !== 'admin') return -1;
-        if (a.role !== 'admin' && b.role === 'admin') return 1;
+        if (a.role === "admin" && b.role !== "admin") return -1;
+        if (a.role !== "admin" && b.role === "admin") return 1;
         return 0;
       });
       setUsers(sortedUsers);
@@ -85,7 +86,8 @@ const Dashboard = () => {
   };
 
   const handleAddUser = async () => {
-    if (!name || !email || !password) return alert("Please fill in all required fields.");
+    if (!name || !email || !password)
+      return alert("Please fill in all required fields.");
 
     try {
       await adminService.createUser({ name, email, password, role });
@@ -122,7 +124,12 @@ const Dashboard = () => {
   };
 
   const handleDeleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this user? This action cannot be undone."
+      )
+    )
+      return;
 
     try {
       await adminService.deleteUser(id);
@@ -176,21 +183,23 @@ const Dashboard = () => {
       </div>
 
       <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
-
         {/* 1. Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
             {/* Total Sales */}
             <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">Total Sales</p>
+                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">
+                    Total Sales
+                  </p>
                   <p className="text-3xl font-extrabold text-slate-900">
                     ₹{stats.grandTotal.toLocaleString()}
                   </p>
                 </div>
-                <div className={`p-3 ${primaryBg} rounded-xl text-white ${primaryShadow}`}>
+                <div
+                  className={`p-3 ${primaryBg} rounded-xl text-white ${primaryShadow}`}
+                >
                   <TrendingUp size={24} />
                 </div>
               </div>
@@ -203,7 +212,9 @@ const Dashboard = () => {
             <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">Active Employees</p>
+                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">
+                    Active Employees
+                  </p>
                   <p className="text-3xl font-extrabold text-slate-900">
                     {users.length}
                   </p>
@@ -221,7 +232,9 @@ const Dashboard = () => {
             <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">Total Invoices</p>
+                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">
+                    Total Invoices
+                  </p>
                   <p className="text-3xl font-extrabold text-slate-900">
                     {totalInvoices}
                   </p>
@@ -239,7 +252,9 @@ const Dashboard = () => {
             <div className="hidden xl:block bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">Total Products</p>
+                  <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">
+                    Total Products
+                  </p>
                   <p className="text-3xl font-extrabold text-slate-900">
                     {stats.productCount || "N/A"}
                   </p>
@@ -257,7 +272,6 @@ const Dashboard = () => {
 
         {/* 2. Quick Actions & Employee Performance (Two Columns) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
           {/* LEFT: Employee Performance (Col 1/2) */}
           {stats && stats.employeeStats.length > 0 && (
             <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border border-slate-200/80">
@@ -266,7 +280,10 @@ const Dashboard = () => {
                   <BarChart3 className={primaryColor} size={20} />
                   Top Employee Performance
                 </h2>
-                <Link to="/reports" className="text-sm font-semibold text-indigo-500 hover:text-indigo-600 transition-colors">
+                <Link
+                  to="/reports"
+                  className="text-sm font-semibold text-indigo-500 hover:text-indigo-600 transition-colors"
+                >
                   View Full Report &rarr;
                 </Link>
               </div>
@@ -278,12 +295,20 @@ const Dashboard = () => {
                     className="flex items-center justify-between pt-4 pb-2 hover:bg-slate-50 rounded-lg -mx-2 px-2 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className={`font-extrabold text-lg w-6 text-center ${index < 3 ? 'text-indigo-500' : 'text-slate-400'}`}>
+                      <span
+                        className={`font-extrabold text-lg w-6 text-center ${
+                          index < 3 ? "text-indigo-500" : "text-slate-400"
+                        }`}
+                      >
                         #{index + 1}
                       </span>
                       <div>
-                        <p className="font-semibold text-slate-800">{emp.employeeName}</p>
-                        <p className="text-xs text-slate-500">{emp.employeeEmail}</p>
+                        <p className="font-semibold text-slate-800">
+                          {emp.employeeName}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {emp.employeeEmail}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -302,20 +327,38 @@ const Dashboard = () => {
 
           {/* RIGHT: Quick Actions (Col 3) */}
           <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-xl border border-slate-200/80 h-fit">
-            <h2 className="text-xl font-bold text-slate-900 mb-6">Quick Links</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-6">
+              Quick Links
+            </h2>
             <div className="space-y-4">
-              <LinkButton to="/manage-products" icon={Package} label="Product Inventory" color="blue" />
-              <LinkButton to="/history" icon={TrendingUp} label="Detailed Sales History" color="purple" />
-              <LinkButton to="/settings" icon={Briefcase} label="System Settings" color="slate" />
+              <LinkButton
+                to="/manage-products"
+                icon={Package}
+                label="Product Inventory"
+                color="blue"
+              />
+              <LinkButton
+                to="/history"
+                icon={TrendingUp}
+                label="Detailed Sales History"
+                color="purple"
+              />
+              <LinkButton
+                to="/settings"
+                icon={Briefcase}
+                label="System Settings"
+                color="slate"
+              />
             </div>
           </div>
         </div>
 
-
         {/* 3. User Management */}
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80">
           <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">Employee Management</h2>
+            <h2 className="text-xl font-bold text-slate-900">
+              Employee Management
+            </h2>
             <Button
               onClick={() => {
                 setEditingUser(null);
@@ -382,7 +425,10 @@ const Dashboard = () => {
                 >
                   {editingUser ? "Save Changes" : "Create Employee"}
                 </Button>
-                <Button onClick={resetForm} className="bg-slate-300 hover:bg-slate-400 text-slate-800 font-semibold py-2 px-4 rounded-xl transition-colors">
+                <Button
+                  onClick={resetForm}
+                  className="bg-slate-300 hover:bg-slate-400 text-slate-800 font-semibold py-2 px-4 rounded-xl transition-colors"
+                >
                   Cancel
                 </Button>
               </div>
@@ -402,8 +448,11 @@ const Dashboard = () => {
                   <p className="text-xs text-slate-500 mt-1">
                     Access Level:{" "}
                     <span
-                      className={`font-bold uppercase tracking-wider ${user.role === "admin" ? "text-red-500" : "text-indigo-600"
-                        }`}
+                      className={`font-bold uppercase tracking-wider ${
+                        user.role === "admin"
+                          ? "text-red-500"
+                          : "text-indigo-600"
+                      }`}
                     >
                       {user.role}
                     </span>

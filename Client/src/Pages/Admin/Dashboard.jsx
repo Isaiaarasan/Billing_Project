@@ -23,7 +23,7 @@ const useAuth = () => {
     // --- REAL LOGOUT LOGIC HERE ---
     console.log("User logged out.");
     // Clear tokens, state, etc.
-    navigate("/login"); // Redirect to login page
+    navigate("/"); // Redirect to login page
   };
   return { logout };
 };

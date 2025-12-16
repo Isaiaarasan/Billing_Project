@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 // Public Pages
 import Landing from "../Pages/Landing";
 import Login from "../Pages/Login";
-import Register from "../Pages/register";
+import Register from "../Pages/Register";
 
 // Admin Special Login
 import AdminLogin from "../Pages/Admin/Login";

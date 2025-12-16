@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useShop } from "../context/ShopContext";
 import { Plus, FileText, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Home = () => {
-  const { invoices } = useShop();
+  const { invoices, fetchInvoices } = useShop();
+
+  useEffect(() => {
+    fetchInvoices();
+  }, [fetchInvoices]);
 
   return (
     <div className="p-4 max-w-lg mx-auto pb-24">
@@ -25,7 +29,7 @@ const Home = () => {
         <div className="space-y-3">
           {invoices.map((inv) => (
             <div
-              key={inv.id}
+              key={inv._id}
               className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"
             >
               <div>
@@ -34,12 +38,12 @@ const Home = () => {
                 </p>
                 <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                   <Calendar size={12} />
-                  {new Date(inv.date).toLocaleDateString()}
+                  {new Date(inv.createdAt).toLocaleDateString()}
                 </div>
               </div>
               <div className="text-right">
                 <span className="block font-bold text-lg text-gray-900">
-                  ₹{inv.total}
+                  ₹{inv.totalAmount}
                 </span>
                 <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded-md font-bold uppercase">
                   Paid

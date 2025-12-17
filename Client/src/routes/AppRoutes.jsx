@@ -18,6 +18,7 @@ import CreateInvoice from "../Pages/CreateInvoice";
 // Admin Pages
 import ManageProducts from "../Pages/Admin/ManageProducts";
 import AdminDashboard from "../Pages/Admin/Dashboard";
+import AdminHistory from "../Pages/Admin/AdminHistory";
 
 // Component to protect routes
 const PrivateRoute = ({ children, role = null }) => {
@@ -97,6 +98,14 @@ const AppRoutes = () => {
         element={
           <PrivateRoute role="admin">
             <ManageProducts />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/history"
+        element={
+          <PrivateRoute role="admin">
+            <AdminHistory />
           </PrivateRoute>
         }
       />

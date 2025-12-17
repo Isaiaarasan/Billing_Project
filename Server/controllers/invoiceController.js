@@ -35,4 +35,18 @@ const getMyInvoices = async (req, res) => {
   }
 };
 
-module.exports = { createInvoice, getMyInvoices };
+// @desc    Get ALL invoices (Admin View)
+// @route   GET /api/invoices/all
+const getAllInvoices = async (req, res) => {
+  try {
+    // Populate createdBy to show employee name
+    const invoices = await Invoice.find({})
+      .populate("createdBy", "name email")
+      .sort({ createdAt: -1 });
+    res.json(invoices);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching all invoices" });
+  }
+};
+
+module.exports = { createInvoice, getMyInvoices, getAllInvoices };

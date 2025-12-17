@@ -84,6 +84,22 @@ export const ShopProvider = ({ children }) => {
     }
   };
 
+  const fetchAllInvoices = async () => {
+    try {
+      const data = await invoiceService.getAllInvoices();
+      // We can reuse the same 'invoices' state or create a new 'allInvoices' state.
+      // Since AdminHistory page will likely use this, reusing 'setInvoices' 
+      // might affect other views if they rely on "my invoices".
+      // However, for Simplicity, let's return the data directly or create a new state if needed.
+      // But wait, the user wants a separate Admin History page.
+      // Let's return the data so the component can manage it, OR add a new state 'adminInvoices'.
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch all invoices:", error);
+      return [];
+    }
+  };
+
   return (
     <ShopContext.Provider
       value={{
@@ -95,6 +111,7 @@ export const ShopProvider = ({ children }) => {
         deleteProduct,
         addInvoice,
         fetchInvoices,
+        fetchAllInvoices,
         fetchProducts,
       }}
     >

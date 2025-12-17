@@ -4,6 +4,7 @@ import { Plus, Save, Trash2, ShoppingCart, ChevronLeft, RefreshCw, Smartphone, U
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import ProductLookup from "../components/ProductLookup";
+import { printInvoice } from "../utils/printInvoice";
 
 const CreateInvoice = () => {
     const { addInvoice, products, fetchProducts } = useShop();
@@ -12,9 +13,9 @@ const CreateInvoice = () => {
     // Customer states
     const [customerName, setCustomerName] = useState("");
     // FIX: Renamed customerEqual to customerMobile for clarity and correctness
-    const [customerMobile, setCustomerMobile] = useState(""); 
+    const [customerMobile, setCustomerMobile] = useState("");
     const [customerEmail, setCustomerEmail] = useState("");
-//1111
+
     // Bill Item states
     const [billItems, setBillItems] = useState([]);
 
@@ -22,6 +23,13 @@ const CreateInvoice = () => {
     const [selectedProduct, setSelectedProduct] = useState("");
     const [qty, setQty] = useState("1");
     const [rate, setRate] = useState("");
+
+    // Payment states
+    const [paymentMode, setPaymentMode] = useState("Cash");
+    const [amountGiven, setAmountGiven] = useState("");
+
+    // Derived state for change
+    const [change, setChange] = useState(0);
 
     const [isSaving, setIsSaving] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -79,12 +87,13 @@ const CreateInvoice = () => {
 
         setIsSaving(true);
         const invoice = {
-            // FIX: Using UUID or backend-generated ID is better, but keeping Date.now() as per original logic.
             customerName,
             customerMobile,
             customerEmail,
             items: billItems,
             totalAmount: finalTotal,
+            paymentMode,
+            cashDetails: paymentMode === "Cash" ? { amountGiven: Number(amountGiven), change: Number(change) } : null,
             createdAt: new Date().toISOString(),
         };
 
@@ -92,7 +101,7 @@ const CreateInvoice = () => {
             await addInvoice(invoice);
             alert("Invoice saved successfully! Now generating PDF...");
             // Automatically trigger download after save
-            handleDownloadPDF(customerName, finalTotal); 
+            handleDownloadPDF(customerName, finalTotal);
         } catch (error) {
             console.error("Failed to save invoice:", error);
             alert("Failed to save invoice. Please try again.");
@@ -101,23 +110,29 @@ const CreateInvoice = () => {
         }
     };
 
-    /**
-     * Placeholder function for generating and downloading the PDF.
-     */
-    const handleDownloadPDF = (name = customerName, total = finalTotal) => {
-        if (billItems.length === 0) {
-             return alert("Cannot download empty invoice.");
-        }
-        
-        console.log("--- Simulating PDF Generation/Download ---");
-        
-        // This simulates the file download action
-        alert(`Simulating PDF download for Invoice #${Date.now()}. 
-             Customer: ${name}, Total: ₹${formatCurrency(total)}`);
-
-        // Real PDF logic goes here (e.g., html2canvas + jspdf)
-        // navigate("/dashboard"); 
+    const handleDownloadPDF = () => {
+        // Construct the invoice object to match the utility's expected format
+        const invoice = {
+            customerName,
+            customerMobile,
+            customerEmail,
+            items: billItems,
+            totalAmount: finalTotal,
+            paymentMode,
+            cashDetails: paymentMode === "Cash" ? { amountGiven: Number(amountGiven), change: Number(change) } : null,
+            createdAt: new Date().toISOString(),
+        };
+        printInvoice(invoice);
     };
+
+    // Update Change effect
+    useEffect(() => {
+        if (paymentMode === "Cash" && amountGiven) {
+            setChange(Number(amountGiven) - finalTotal);
+        } else {
+            setChange(0);
+        }
+    }, [amountGiven, finalTotal, paymentMode]);
 
     // The sticky/flex layout needs the main content wrapper to have overflow-y-auto
     return (
@@ -134,7 +149,7 @@ const CreateInvoice = () => {
                     </button>
                     <div>
                         <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                           <DollarSign size={20} className="text-indigo-600"/> New Sales Invoice
+                            <DollarSign size={20} className="text-indigo-600" /> New Sales Invoice
                         </h1>
                         <p className="text-xs text-slate-500">Create, bill, and manage transactions</p>
                     </div>
@@ -155,7 +170,7 @@ const CreateInvoice = () => {
 
                 {/* LEFT: Editor Area (Customer + Items) */}
                 <div className="lg:col-span-7 space-y-6 min-h-0">
-                    
+
                     {/* Section 1: Customer Details (Moved to top for logical flow) */}
                     <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-100/70">
                         <div className="flex items-center gap-2 mb-6 text-slate-800">
@@ -174,7 +189,7 @@ const CreateInvoice = () => {
                                 label="Mobile Number"
                                 placeholder="Ex: 9876543210"
                                 // FIX: Corrected state variable name from customerEqual to customerMobile
-                                value={customerMobile} 
+                                value={customerMobile}
                                 onChange={(e) => setCustomerMobile(e.target.value)}
                             />
                             <Input
@@ -237,8 +252,8 @@ const CreateInvoice = () => {
                         </div>
                     </div>
 
-                </div> 
-                
+                </div>
+
                 {/* RIGHT: Invoice Preview / Summary */}
                 <div className="lg:col-span-5 flex flex-col min-h-0 lg:max-h-[calc(100vh-64px)] lg:sticky lg:top-8">
                     <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 flex flex-col h-full">
@@ -281,7 +296,7 @@ const CreateInvoice = () => {
                                             </div>
                                             <span className="col-span-2 text-center font-medium text-slate-700">{item.qty}</span>
                                             <span className="col-span-2 text-right text-slate-600 text-sm">₹{formatCurrency(item.rate)}</span>
-                                            
+
                                             <div className="col-span-2 text-right flex items-center justify-end gap-2">
                                                 <span className="font-bold text-slate-900 text-sm">₹{formatCurrency(item.total)}</span>
                                                 <button
@@ -299,12 +314,55 @@ const CreateInvoice = () => {
                         </div>
 
                         {/* Footer Actions */}
-                        <div className="p-6 border-t border-slate-100 bg-white rounded-b-2xl flex-shrink-0">
-                            <div className="flex gap-4 mb-4 text-xs text-slate-500 font-medium">
-                                <span className="flex items-center gap-1"><CreditCard size={14} /> Accepted: Card</span>
-                                <span className="flex items-center gap-1"><Smartphone size={14} /> Accepted: UPI</span>
+                        {/* Payment & Footer Actions */}
+                        <div className="p-6 border-t border-slate-100 bg-white rounded-b-2xl flex-shrink-0 space-y-4">
+
+                            {/* Payment Mode Selection */}
+                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Payment Mode</p>
+                                <div className="flex bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
+                                    {['Cash', 'Card', 'UPI'].map(mode => (
+                                        <button
+                                            key={mode}
+                                            onClick={() => setPaymentMode(mode)}
+                                            className={`flex-1 py-1.5 text-sm font-semibold rounded-md transition-all ${paymentMode === mode
+                                                ? 'bg-indigo-600 text-white shadow-md'
+                                                : 'text-slate-600 hover:bg-slate-50'
+                                                }`}
+                                        >
+                                            {mode}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Custom Fields for Cash */}
+                                {paymentMode === 'Cash' && (
+                                    <div className="mt-3 grid grid-cols-2 gap-3 animate-fade-in-down">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Received (₹)</label>
+                                            <input
+                                                type="number"
+                                                value={amountGiven}
+                                                onChange={(e) => setAmountGiven(e.target.value)}
+                                                className="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Change (₹)</label>
+                                            <div className={`w-full px-2 py-1 text-sm font-bold rounded-lg border ${change < 0 ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-600 border-green-200'}`}>
+                                                {change > 0 ? `+ ${formatCurrency(change)}` : formatCurrency(change)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            
+
+                            <div className="flex gap-4 mb-4 text-xs text-slate-500 font-medium">
+                                <span className={`flex items-center gap-1 ${paymentMode === 'Card' ? 'text-indigo-600 font-bold' : ''}`}><CreditCard size={14} /> Accepted: Card</span>
+                                <span className={`flex items-center gap-1 ${paymentMode === 'UPI' ? 'text-indigo-600 font-bold' : ''}`}><Smartphone size={14} /> Accepted: UPI</span>
+                            </div>
+
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => handleDownloadPDF(customerName, finalTotal)}
@@ -314,7 +372,7 @@ const CreateInvoice = () => {
                                 >
                                     <Download size={20} /> PDF
                                 </button>
-                                
+
                                 <button
                                     onClick={handleSave}
                                     disabled={isSaving || billItems.length === 0}

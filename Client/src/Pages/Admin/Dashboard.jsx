@@ -16,6 +16,16 @@ import {
 } from "lucide-react";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 // Placeholder for the actual logout implementation (e.g., from an Auth Context)
 // const useAuth = () => {
@@ -248,8 +258,8 @@ const Dashboard = () => {
               </p>
             </div>
 
-            {/* Dummy Card for visual symmetry/future expansion */}
-            <div className="hidden xl:block bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
+            {/* Total Products */}
+            <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transform hover:scale-[1.01] transition-transform duration-300">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1">
@@ -266,6 +276,41 @@ const Dashboard = () => {
               <p className="text-xs text-slate-400 mt-2">
                 Inventory items currently stocked.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* 1.5 Category Sales Chart */}
+        {stats && stats.categoryStats && (
+          <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200/80">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <BarChart3 className={primaryColor} size={20} />
+                Category Sales Analysis
+              </h2>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={stats.categoryStats.map(s => ({ name: s._id || 'Unknown', sales: s.totalSales, count: s.count }))}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    cursor={{ fill: '#f1f5f9' }}
+                  />
+                  <Legend iconType="circle" />
+                  <Bar dataKey="sales" name="Total Sales (₹)" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}
@@ -296,9 +341,8 @@ const Dashboard = () => {
                   >
                     <div className="flex items-center gap-3">
                       <span
-                        className={`font-extrabold text-lg w-6 text-center ${
-                          index < 3 ? "text-indigo-500" : "text-slate-400"
-                        }`}
+                        className={`font-extrabold text-lg w-6 text-center ${index < 3 ? "text-indigo-500" : "text-slate-400"
+                          }`}
                       >
                         #{index + 1}
                       </span>
@@ -448,11 +492,10 @@ const Dashboard = () => {
                   <p className="text-xs text-slate-500 mt-1">
                     Access Level:{" "}
                     <span
-                      className={`font-bold uppercase tracking-wider ${
-                        user.role === "admin"
-                          ? "text-red-500"
-                          : "text-indigo-600"
-                      }`}
+                      className={`font-bold uppercase tracking-wider ${user.role === "admin"
+                        ? "text-red-500"
+                        : "text-indigo-600"
+                        }`}
                     >
                       {user.role}
                     </span>

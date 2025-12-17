@@ -11,8 +11,10 @@ import {
     FileText,
     Bell,
     Search,
-    Settings
+    Settings,
+    Printer
 } from "lucide-react";
+import { printInvoice } from "../utils/printInvoice";
 
 const EmployeeDashboard = () => {
     const { user, logout } = useAuth();
@@ -193,8 +195,79 @@ const EmployeeDashboard = () => {
 
                 </div>
 
-            </main>
-        </div>
+
+
+                {/* Recent Invoices Section */}
+                <div className="mt-10 animate-fade-in-up delay-200">
+                    <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <History className="text-indigo-600" size={24} />
+                        Your Recent Invoices
+                    </h3>
+
+                    <div className="bg-white rounded-3xl shadow-xl border border-slate-200/60 overflow-hidden">
+                        {todaysInvoices.length === 0 ? (
+                            <div className="p-12 text-center text-slate-400">
+                                <p>No invoices generated today.</p>
+                                <Link to="/create-invoice" className="text-indigo-600 font-semibold hover:underline mt-2 inline-block">Create your first invoice</Link>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-50/80 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                            <th className="p-5">Customer</th>
+                                            <th className="p-5 text-center">Items</th>
+                                            <th className="p-5 text-center">Total</th>
+                                            <th className="p-5 text-center">Mode</th>
+                                            <th className="p-5 text-center">Time</th>
+                                            <th className="p-5 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {todaysInvoices.slice().reverse().map((invoice) => (
+                                            <tr key={invoice._id} className="hover:bg-slate-50/50 transition-colors group">
+                                                <td className="p-5">
+                                                    <p className="font-bold text-slate-800">{invoice.customerName}</p>
+                                                    <p className="text-xs text-slate-500">{invoice.customerMobile}</p>
+                                                </td>
+                                                <td className="p-5 text-center">
+                                                    <span className="bg-slate-100 text-slate-600 py-1 px-3 rounded-full text-xs font-bold">
+                                                        {invoice.items.length}
+                                                    </span>
+                                                </td>
+                                                <td className="p-5 text-center font-bold text-indigo-900">
+                                                    ₹{invoice.totalAmount.toLocaleString()}
+                                                </td>
+                                                <td className="p-5 text-center">
+                                                    <span className={`py-1 px-3 rounded-full text-xs font-bold uppercase ${invoice.paymentMode === 'Cash' ? 'bg-green-100 text-green-700' :
+                                                        invoice.paymentMode === 'Card' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                                                        }`}>
+                                                        {invoice.paymentMode || 'Cash'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-5 text-center text-sm text-slate-500">
+                                                    {new Date(invoice.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </td>
+                                                <td className="p-5 text-right">
+                                                    <button
+                                                        onClick={() => printInvoice(invoice)}
+                                                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                                                        title="Print Bill"
+                                                    >
+                                                        <Printer size={20} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+            </main >
+        </div >
     );
 };
 

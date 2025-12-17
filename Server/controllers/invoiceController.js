@@ -3,13 +3,15 @@ const Invoice = require("../models/Invoice");
 // @desc    Create new invoice
 // @route   POST /api/invoices
 const createInvoice = async (req, res) => {
-  const { customerName, items, totalAmount } = req.body;
+  const { customerName, items, totalAmount, paymentMode, cashDetails } = req.body;
 
   try {
     const invoice = new Invoice({
       customerName,
       items,
       totalAmount,
+      paymentMode,
+      cashDetails,
       createdBy: req.user._id, // Taken from auth middleware
     });
 

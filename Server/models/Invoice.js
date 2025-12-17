@@ -12,6 +12,15 @@ const invoiceSchema = mongoose.Schema(
       },
     ],
     totalAmount: { type: Number, required: true },
+    paymentMode: {
+      type: String,
+      enum: ["Cash", "Card", "UPI"],
+      default: "Cash",
+    },
+    cashDetails: {
+      amountGiven: Number,
+      change: Number,
+    },
     status: { type: String, enum: ["paid", "pending"], default: "paid" },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

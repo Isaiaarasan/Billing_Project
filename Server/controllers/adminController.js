@@ -36,12 +36,47 @@ const getEmployeeStats = async (req, res) => {
       },
     ]);
 
-    // 2. Calculate Grand Total for the company
+    // 2. Aggregate sales by Category (using unnested items)
+    // Note: Items in Invoice schema is an array of objects. We need to unwind it first if we want strict category tracking,
+    // BUT the Invoice Item currently does not have 'category' stored in it snapshot. 
+    // We only stored name, qty, rate, total. 
+    // To solve this properly, we should modify the Invoice Item schema to include category OR look up the product.
+    // However, looking up products might be slow. 
+    // A better approach for the future is to store category in the invoice item.
+    // For now, let's assuming we might not have it in old invoices, but we can try to $lookup products if names match?
+    // OR simpler: The user just asked for "charts to analyze category wise sales". 
+    // The previous step was adding Category to Product. 
+    // So we can Join Invoices -> Items -> Products -> Category.
+
+    const categoryStats = await Invoice.aggregate([
+      { $unwind: "$items" },
+      {
+        $lookup: {
+          from: "products",
+          let: { itemName: "$items.name" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$name", "$$itemName"] } } }
+          ],
+          as: "productData"
+        }
+      },
+      { $unwind: "$productData" },
+      {
+        $group: {
+          _id: "$productData.category",
+          totalSales: { $sum: "$items.total" },
+          count: { $sum: "$items.qty" }
+        }
+      }
+    ]);
+
+    // 3. Calculate Grand Total for the company
     const grandTotal = stats.reduce((acc, curr) => acc + curr.totalSales, 0);
 
     res.json({
       grandTotal,
       employeeStats: stats,
+      categoryStats,
     });
   } catch (error) {
     console.error(error);

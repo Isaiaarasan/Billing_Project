@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShop } from "../../context/ShopContext";
 import { useAuth } from "../../context/AuthContext";
-import { ChevronLeft, Package, Edit, Trash2, Plus, DollarSign } from "lucide-react"; // Added DollarSign
+import { ChevronLeft, Package, Edit, Trash2, Plus, DollarSign } from "lucide-react";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 
@@ -20,9 +20,11 @@ const ManageProducts = () => {
     // Form states
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
+    const [category, setCategory] = useState("General"); // Default category
     const [editingId, setEditingId] = useState(null);
     const [editName, setEditName] = useState("");
     const [editPrice, setEditPrice] = useState("");
+    const [editCategory, setEditCategory] = useState("General");
     const [loading, setLoading] = useState(false);
 
     // --- Styling Classes ---
@@ -36,9 +38,10 @@ const ManageProducts = () => {
         setLoading(true);
 
         try {
-            await addProduct({ name, price: Number(price) });
+            await addProduct({ name, price: Number(price), category });
             setName("");
             setPrice("");
+            setCategory("General");
         } catch (error) {
             console.error("Failed to add product:", error);
             alert("Failed to add product");
@@ -51,6 +54,7 @@ const ManageProducts = () => {
         setEditingId(product._id);
         setEditName(product.name);
         setEditPrice(product.price);
+        setEditCategory(product.category || "General");
     };
 
     const handleUpdate = async () => {
@@ -61,10 +65,12 @@ const ManageProducts = () => {
             await updateProduct(editingId, {
                 name: editName,
                 price: Number(editPrice),
+                category: editCategory,
             });
             setEditingId(null);
             setEditName("");
             setEditPrice("");
+            setEditCategory("General");
         } catch (error) {
             console.error("Failed to update product:", error);
             alert("Failed to update product");
@@ -89,6 +95,7 @@ const ManageProducts = () => {
         setEditingId(null);
         setEditName("");
         setEditPrice("");
+        setEditCategory("General");
     };
 
     return (
@@ -110,7 +117,7 @@ const ManageProducts = () => {
             </div>
 
             <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8">
-                
+
                 {/* Add/Edit Product Form - Admin Only */}
                 {isAdmin && (
                     <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50">
@@ -136,6 +143,22 @@ const ManageProducts = () => {
                                     onChange={(e) => setEditPrice(e.target.value)}
                                     required
                                 />
+                                {/* REMOVED DUPLICATE INPUT LINE HERE */}
+                                <div className="space-y-1">
+                                    <label className="text-sm font-medium text-slate-700">Category</label>
+                                    <select
+                                        value={editCategory}
+                                        onChange={(e) => setEditCategory(e.target.value)}
+                                        className="w-full p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                    >
+                                        <option value="General">General</option>
+                                        <option value="Cosmetics">Cosmetics</option>
+                                        <option value="Stationery">Stationery</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Groceries">Groceries</option>
+                                        <option value="Accessories">Accessories</option>
+                                    </select>
+                                </div>
                                 <div className="flex gap-3 pt-2">
                                     <Button onClick={handleUpdate} loading={loading} className={`${primaryBg} ${primaryHoverBg} text-white font-semibold py-2 px-4 rounded-xl shadow-md`}>
                                         Update Price
@@ -156,6 +179,7 @@ const ManageProducts = () => {
                                         required
                                     />
                                 </div>
+                                {/* ADDED WRAPPING <div> HERE */}
                                 <div>
                                     <Input
                                         label="Price (₹)"
@@ -166,6 +190,22 @@ const ManageProducts = () => {
                                         required
                                     />
                                 </div>
+                                {/* END OF PRICE INPUT FIX */}
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                                    <select
+                                        value={category}
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        className="w-full p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                    >
+                                        <option value="General">General</option>
+                                        <option value="Cosmetics">Cosmetics</option>
+                                        <option value="Stationery">Stationery</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Groceries">Groceries</option>
+                                        <option value="Accessories">Accessories</option>
+                                    </select>
+                                </div>
                                 <div className="md:col-span-3 pt-2">
                                     <Button onClick={handleAdd} loading={loading} className={`${primaryBg} ${primaryHoverBg} text-white font-semibold py-2 px-4 rounded-xl shadow-md w-full`}>
                                         <Plus size={16} /> Add Product to Inventory
@@ -174,7 +214,7 @@ const ManageProducts = () => {
                             </div>
                         )}
                     </div>
-                )}
+                )} {/* REMOVED EXTRA </div> and )} HERE */}
 
                 {/* Products List */}
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80">
@@ -211,13 +251,13 @@ const ManageProducts = () => {
                                             {product.name}
                                         </h3>
                                         <p className="text-xs text-slate-500 mt-1">
-                                            Added by: {product.addedBy?.name || "System"}
+                                            Category: <span className="font-semibold text-indigo-500">{product.category || "General"}</span> • Added by: {product.addedBy?.name || "System"}
                                         </p>
                                         <p className="text-xs text-slate-400">
                                             Created on: {new Date(product.createdAt).toLocaleDateString()}
                                         </p>
                                     </div>
-                                    
+
                                     <div className="flex items-center gap-4 flex-shrink-0">
                                         <span className={`font-extrabold text-xl ${priceColor}`}>
                                             ₹{product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

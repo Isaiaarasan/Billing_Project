@@ -155,7 +155,7 @@ const AdminDashboard = () => {
         0
     ) || 0;
 
-    const UserForm = () => (
+    const userFormContent = (
         <div className="p-6 border-b border-slate-100 bg-slate-50/70 rounded-xl shadow-inner mb-6">
             <h3 className="text-lg font-bold mb-4 text-slate-800">
                 {editingUser ? "Edit Employee Details" : "Add New Employee"}
@@ -311,13 +311,13 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 )}
-                
+
                 {/* 2. Charts & Main Sections (New 3-Column Layout on large screens) */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
+
                     {/* LEFT (Col 1/2): Performance & Charts - 2/3 width */}
                     <div className="lg:col-span-2 space-y-8">
-                        
+
                         {/* 2.1 Category Sales Chart */}
                         {stats && stats.categoryStats && (
                             <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200/80">
@@ -400,10 +400,10 @@ const AdminDashboard = () => {
                             </div>
                         )}
                     </div>
-                    
+
                     {/* RIGHT (Col 3): Quick Actions & User Management - 1/3 width */}
                     <div className="lg:col-span-1 space-y-8">
-                        
+
                         {/* 3.1 Quick Actions */}
                         <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200/80 h-fit">
                             <h2 className="text-xl font-bold text-slate-900 mb-6">
@@ -463,8 +463,8 @@ const AdminDashboard = () => {
                                             <p className="text-xs text-slate-600">
                                                 <span
                                                     className={`font-bold uppercase tracking-wider mr-2 ${user.role === "admin"
-                                                            ? "text-red-500"
-                                                            : "text-indigo-600"
+                                                        ? "text-red-500"
+                                                        : "text-indigo-600"
                                                         }`}
                                                 >
                                                     {user.role}
@@ -497,7 +497,7 @@ const AdminDashboard = () => {
 
                 {/* 4. Add/Edit User Form (Moved to the bottom or as a Modal/Drawer) */}
                 {/* Keeping it here but using the flag 'showAddUser' */}
-                {showAddUser && <UserForm />}
+                {showAddUser && userFormContent}
 
             </div>
         </div>

@@ -179,15 +179,15 @@ const updateUser = async (req, res) => {
 // @route   DELETE /api/admin/users/:id
 const deleteUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findByIdAndDelete(req.params.id);
 
     if (user) {
-      await user.deleteOne();
       res.json({ message: "User removed" });
     } else {
       res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
+    console.error("Error deleting user:", error);
     res.status(500).json({ message: error.message });
   }
 };
